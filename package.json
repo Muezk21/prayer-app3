@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start:backend": "cd backend && uvicorn main:app --reload"
+  },
   "devDependencies": {
     "@types/luxon": "^3.7.1"
   }

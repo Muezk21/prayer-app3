@@ -169,68 +169,68 @@ export default function App() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto p-4 font-sans">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between mb-4">
         <div>
-          <h1 className="text-2xl font-semibold">Islamic Prayer App</h1>
-          <p className="text-slate-500">Daily prayers, Qibla, and Hijri calendar</p>
+          <h1 className="text-3xl font-bold text-brand-gold">Islamic Prayer App</h1>
+          <p className="text-brand-white/80">Daily prayers, Qibla, and Hijri calendar</p>
         </div>
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-slate-600">
-            <input type="checkbox" className="mr-2" checked={use24h} onChange={e => setUse24h(e.target.checked)} />
+        <div className="flex items-center gap-4">
+          <label className="text-sm flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" className="mr-2 accent-brand-gold" checked={use24h} onChange={e => setUse24h(e.target.checked)} />
             24h clock
           </label>
-          <label className="text-sm text-slate-600">
-            <input type="checkbox" className="mr-2" checked={notifOn} onChange={e => setNotifOn(e.target.checked)} />
+          <label className="text-sm flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" className="mr-2 accent-brand-gold" checked={notifOn} onChange={e => setNotifOn(e.target.checked)} />
             Prayer reminders
           </label>
         </div>
       </header>
 
       <section className="grid md:grid-cols-3 gap-4 mb-4">
-        <div className="md:col-span-2 p-4 rounded-2xl shadow bg-white">
+        <div className="md:col-span-2 p-4 rounded-2xl shadow-lg bg-brand-green-light">
           <div className="flex items-center gap-2 mb-3">
             <input
               placeholder="Search city or address"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              className="border rounded px-3 py-2 w-full"
+              className="border border-brand-white/20 bg-brand-green/50 rounded px-3 py-2 w-full focus:ring-brand-gold focus:border-brand-gold"
             />
-            <button onClick={handleSearch} className="px-3 py-2 bg-slate-900 text-white rounded">Find</button>
+            <button onClick={handleSearch} className="px-4 py-2 bg-brand-gold text-brand-green font-bold rounded hover:bg-yellow-400 transition-colors">Find</button>
           </div>
-          <div className="text-sm text-slate-600 mb-2">
+          <div className="text-sm text-brand-white/70 mb-2">
             {loc?.label ? `Location: ${loc.label}` : loc ? `Lat ${loc.lat.toFixed(4)}, Lon ${loc.lon.toFixed(4)}` : 'Locating...'}
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             <div>
-              <label className="text-xs text-slate-600">Method</label>
-              <select value={method} onChange={e => setMethod(e.target.value as any)} className="w-full border rounded px-2 py-2">
+              <label className="text-xs text-brand-white/70">Method</label>
+              <select value={method} onChange={e => setMethod(e.target.value as any)} className="w-full border border-brand-white/20 bg-brand-green/50 rounded px-2 py-2">
                 {Object.keys(METHODS).map(k => <option key={k} value={k}>{k}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs text-slate-600">Asr Madhab</label>
-              <select value={madhab} onChange={e => setMadhab(e.target.value as any)} className="w-full border rounded px-2 py-2">
+              <label className="text-xs text-brand-white/70">Asr Madhab</label>
+              <select value={madhab} onChange={e => setMadhab(e.target.value as any)} className="w-full border border-brand-white/20 bg-brand-green/50 rounded px-2 py-2">
                 <option value="Shafi">Shafi</option>
                 <option value="Hanafi">Hanafi</option>
               </select>
             </div>
             <div>
-              <label className="text-xs text-slate-600">Date</label>
-              <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full border rounded px-2 py-2"/>
+              <label className="text-xs text-brand-white/70">Date</label>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full border border-brand-white/20 bg-brand-green/50 rounded px-2 py-2"/>
             </div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl shadow bg-white">
-          <div className="text-sm text-slate-600">Hijri (backend):</div>
-          <div className="text-lg">{hijri || '...'}</div>
+        <div className="p-4 rounded-2xl shadow-lg bg-brand-green-light">
+          <div className="text-sm text-brand-white/70">Hijri (backend):</div>
+          <div className="text-lg font-semibold text-brand-gold">{hijri || '...'}</div>
         </div>
       </section>
 
       <section className="grid md:grid-cols-3 gap-4">
-        <div className="md:col-span-2 p-4 rounded-2xl shadow bg-white">
-          <h2 className="font-semibold mb-3">Prayer Times</h2>
+        <div className="md:col-span-2 p-4 rounded-2xl shadow-lg bg-brand-green-light">
+          <h2 className="font-semibold mb-3 text-brand-gold">Prayer Times</h2>
           {!times || !loc ? (
             <div>Loading...</div>
           ) : (
@@ -243,9 +243,9 @@ export default function App() {
                 ['Maghrib', times.maghrib],
                 ['Isha', times.isha],
               ].map(([label, t]) => (
-                <div key={label as string} className="border rounded-xl px-3 py-2 flex items-center justify-between">
+                <div key={label as string} className="border border-brand-white/20 rounded-xl px-3 py-2 flex items-center justify-between">
                   <div>{typeof label === 'object' && label instanceof Date ? label.toLocaleString() : label}</div>
-                  <div className="font-medium">
+                  <div className="font-medium text-brand-gold">
                     {formatTime(t as Date, loc.tz, use24h)}
                   </div>
                 </div>
@@ -254,26 +254,26 @@ export default function App() {
           )}
         </div>
 
-        <div className="p-4 rounded-2xl shadow bg-white">
-          <h2 className="font-semibold mb-3">Qibla</h2>
+        <div className="p-4 rounded-2xl shadow-lg bg-brand-green-light">
+          <h2 className="font-semibold mb-3 text-brand-gold">Qibla</h2>
           {!qiblaDeg ? (
             <div>Calculating...</div>
           ) : (
             <div className="flex flex-col items-center gap-2">
-              <div className="w-40 h-40 rounded-full border relative">
-                <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-500">N</div>
+              <div className="w-40 h-40 rounded-full border-2 border-brand-white/30 relative">
+                <div className="absolute inset-0 flex items-center justify-center text-xs text-brand-white/70">N</div>
                 <div className="origin-bottom absolute left-1/2 -translate-x-1/2 bottom-1/2 w-0 h-1/2"
                      style={{ transform: `translateX(-50%) rotate(${qiblaDeg}deg)` }}>
-                  <div className="w-1 h-full bg-slate-900 mx-auto"></div>
+                  <div className="w-1 h-full bg-brand-gold mx-auto rounded-full"></div>
                 </div>
               </div>
-              <div className="text-sm text-slate-600">Bearing: {qiblaDeg.toFixed(1)}° from North</div>
+              <div className="text-sm text-brand-white/70">Bearing: {qiblaDeg.toFixed(1)}° from North</div>
             </div>
           )}
         </div>
       </section>
 
-      <footer className="text-center text-xs text-slate-400 mt-8">
+      <footer className="text-center text-xs text-brand-white/50 mt-8">
         Built with React + FastAPI. Methods via adhan.js. Your location never leaves your browser except for Hijri date request.
       </footer>
     </div>
