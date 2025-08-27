@@ -1,7 +1,8 @@
 NEXT STEPS
 
-run app
+Update color again
 update main features
+update layout/style
 break down each block of main.py
 update UI
 
