@@ -1,0 +1,18 @@
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/*.tsbuildinfo
+
+# Backend
+backend/.venv/
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
