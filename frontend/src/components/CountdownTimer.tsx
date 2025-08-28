@@ -41,15 +41,22 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ nextPrayerName, nextPra
     );
   }
 
-  const { hours, minutes, seconds } = remaining.toObject();
+  // Use shiftTo to ensure we get proper values
+  const duration = remaining.shiftTo('hours', 'minutes', 'seconds');
+  const hours = Math.floor(duration.hours || 0);
+  const minutes = Math.floor(duration.minutes || 0);
+  const seconds = Math.floor(duration.seconds || 0);
 
   return (
     <div className="text-center p-6 rounded-2xl shadow-lg bg-brand-green-light mb-4">
-      <h2 className="text-xl text-brand-white/80">Time until {nextPrayerName}</h2>
-      <div className="text-5xl font-bold text-brand-gold">
-        {String(Math.floor(hours ?? 0)).padStart(2, '0')}:
-        {String(Math.floor(minutes ?? 0)).padStart(2, '0')}:
-        {String(Math.floor(seconds ?? 0)).padStart(2, '0')}
+      <h2 className="text-xl text-white">Time until {nextPrayerName}</h2>
+      <div className="text-5xl font-bold text-red-600">
+        {String(hours).padStart(2, '0')}:
+        {String(minutes).padStart(2, '0')}:
+        {String(seconds).padStart(2, '0')}
+      </div>
+      <div className="text-sm text-white">
+        Next prayer at {nextPrayerTime.toFormat('h:mm a')}
       </div>
     </div>
   );
