@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { DateTime } from 'luxon'
 import { Coordinates, CalculationMethod, PrayerTimes, Qibla, Madhab, CalculationParameters } from 'adhan'
+import CountdownTimer from './components/CountdownTimer'
 
 type Location = { lat: number; lon: number; tz: string; label?: string }
 
@@ -33,6 +34,7 @@ export default function App() {
   const [notifOn, setNotifOn] = useState(false)
   const [query, setQuery] = useState('')
   const [hijri, setHijri] = useState<string>('')
+  const [nextPrayer, setNextPrayer] = useState<{ name: string; time: DateTime } | null>(null);
   const notifTimers = useRef<number[]>([])
 
   // Geolocate on first load
@@ -86,6 +88,42 @@ export default function App() {
       return null
     }
   }, [coords, date, params, loc?.tz])
+
+  useEffect(() => {
+    if (!times || !loc) return;
+
+    const now = DateTime.now().setZone(loc.tz);
+    const prayerTimes: [string, Date][] = [
+      ['Fajr', times.fajr],
+      ['Sunrise', times.sunrise],
+      ['Dhuhr', times.dhuhr],
+      ['Asr', times.asr],
+      ['Maghrib', times.maghrib],
+      ['Isha', times.isha],
+    ];
+
+    let next: { name: string; time: DateTime } | null = null;
+
+    for (const [name, time] of prayerTimes) {
+      const prayerTime = DateTime.fromJSDate(time).setZone(loc.tz);
+      if (prayerTime > now) {
+        next = { name, time: prayerTime };
+        break;
+      }
+    }
+
+    // If all prayers for today are done, show Fajr for tomorrow
+    if (!next) {
+      const tomorrow = DateTime.fromISO(date).plus({ days: 1 }).setZone(loc.tz || 'UTC');
+      const tomorrowDate = new Date(tomorrow.year, tomorrow.month - 1, tomorrow.day);
+      if (coords) {
+        const tomorrowTimes = new PrayerTimes(coords, tomorrowDate, params);
+        next = { name: 'Fajr', time: DateTime.fromJSDate(tomorrowTimes.fajr).setZone(loc.tz) };
+      }
+    }
+
+    setNextPrayer(next);
+  }, [times, loc, date, coords, params]);
 
   const qiblaDeg = useMemo(() => {
     if (!coords) return null
@@ -186,6 +224,8 @@ export default function App() {
           </label>
         </div>
       </header>
+
+      {nextPrayer && <CountdownTimer nextPrayerName={nextPrayer.name} nextPrayerTime={nextPrayer.time} />}
 
       <section className="grid md:grid-cols-3 gap-4 mb-4">
         <div className="md:col-span-2 p-4 rounded-2xl shadow-lg bg-brand-green-light">
