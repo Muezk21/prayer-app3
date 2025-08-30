@@ -207,28 +207,57 @@ export default function App() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 font-sans">
-      <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between mb-4">
-        <div>
-          <h1 className="text-3xl font-bold text-brand-gold">Islamic Prayer App</h1>
-          <p className="text-brand-white/80">Daily prayers, Qibla, and Hijri calendar</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <label className="text-sm flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="mr-2 accent-brand-gold" checked={use24h} onChange={e => setUse24h(e.target.checked)} />
-            24h clock
-          </label>
-          <label className="text-sm flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="mr-2 accent-brand-gold" checked={notifOn} onChange={e => setNotifOn(e.target.checked)} />
-            Prayer reminders
-          </label>
-        </div>
-      </header>
+    <div className="bg-brand-green text-brand-white min-h-screen">
+      <div className="max-w-4xl mx-auto p-4 font-sans">
+
+<header className="relative flex flex-col items-center justify-center gap-6 mb-8 text-center">
+  {/* Background Arabic calligraphy */}
+  <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
+    <span className="text-[6rem] md:text-[10rem] font-arabic text-brand-gold opacity-20 select-none whitespace-nowrap mt-14">
+      بسم الله الرحمن الرحيم
+    </span>
+  </div>
+
+  {/* Foreground content */}
+  <div className="relative z-10 flex flex-col items-center justify-center text-center py-12 space-y-6">
+    <h1 className="text-5xl md:text-6xl font-bold text-brand-gold drop-shadow-lg mb-4">
+      Islamic Prayer App
+    </h1>
+    <p className="text-lg md:text-xl text-brand-white/80">
+      Daily prayers, Qibla, and Hijri calendar
+    </p>
+  </div>
+
+  {/* Toggles */}
+  <div className="relative z-10 flex flex-col md:flex-row items-center justify-center gap-4">
+    <label className="text-sm md:text-base flex items-center gap-2 cursor-pointer transition-transform duration-300 hover:scale-105">
+      <input
+        type="checkbox"
+        className="mr-2 accent-brand-gold"
+        checked={use24h}
+        onChange={e => setUse24h(e.target.checked)}
+      />
+      24h Clock
+    </label>
+    
+    <label className="text-sm md:text-base flex items-center gap-2 cursor-pointer transition-transform duration-300 hover:scale-105">
+      <input
+        type="checkbox"
+        className="mr-2 accent-brand-gold"
+        checked={notifOn}
+        onChange={e => setNotifOn(e.target.checked)}
+      />
+      Prayer Reminders
+    </label>
+  </div>
+</header>
+
+
 
       {nextPrayer && <CountdownTimer nextPrayerName={nextPrayer.name} nextPrayerTime={nextPrayer.time} />}
 
       <section className="grid md:grid-cols-3 gap-4 mb-4">
-        <div className="md:col-span-2 p-4 rounded-2xl shadow-lg bg-brand-green-light">
+        <div className="md:col-span-2 p-4 rounded-2xl border border-brand-gold/30">
           <div className="flex items-center gap-2 mb-3">
             <input
               placeholder="Search city or address"
@@ -262,14 +291,14 @@ export default function App() {
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl shadow-lg bg-brand-green-light">
+        <div className="p-4 rounded-2xl border border-brand-gold/30">
           <div className="text-sm text-brand-white/70">Hijri (backend):</div>
           <div className="text-lg font-semibold text-brand-gold">{hijri || '...'}</div>
         </div>
       </section>
 
       <section className="grid md:grid-cols-3 gap-4">
-        <div className="md:col-span-2 p-4 rounded-2xl shadow-lg bg-brand-green-light">
+        <div className="md:col-span-2 p-4 rounded-2xl border border-brand-gold/30">
           <h2 className="font-semibold mb-3 text-brand-gold">Prayer Times</h2>
           {!times || !loc ? (
             <div>Loading...</div>
@@ -294,7 +323,7 @@ export default function App() {
           )}
         </div>
 
-        <div className="p-4 rounded-2xl shadow-lg bg-brand-green-light">
+        <div className="p-4 rounded-2xl border border-brand-gold/30">
           <h2 className="font-semibold mb-3 text-brand-gold">Qibla</h2>
           {!qiblaDeg ? (
             <div>Calculating...</div>
@@ -317,5 +346,6 @@ export default function App() {
         Built with React + FastAPI. Methods via adhan.js. Your location never leaves your browser except for Hijri date request.
       </footer>
     </div>
+  </div>
   )
 }

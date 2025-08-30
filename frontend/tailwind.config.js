@@ -8,7 +8,7 @@ export default {
           DEFAULT: '#013220',
           light: '#024b30',
         },
-        'brand-gold': '#FFD700',
+        'brand-gold': '#D4AF37',
         'brand-white': '#FFFFFF',
       },
     },

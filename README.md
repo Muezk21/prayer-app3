@@ -1,8 +1,7 @@
 NEXT STEPS
 
-Update color again
-update main features
-update layout/style
+Update text colors (non visible ones and change the gold)
+Place features in more appropriate layout (one bg color)
 break down each block of main.py
 update UI
 

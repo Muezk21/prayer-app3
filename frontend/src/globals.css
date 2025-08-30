@@ -6,7 +6,7 @@
 /* Tailwind v4 Theme Configuration */
 @theme {
   /* Brand colors for Islamic Prayer App */
-  --color-brand-gold: #fbbf24;
+  --color-brand-gold: #e5b80b;
   --color-brand-green: #16a34a;
   --color-brand-green-light: #dcfce7;
   --color-brand-green-dark: #15803d;
@@ -386,4 +386,20 @@ textarea:focus {
   .section-padding {
     padding: 3rem 1rem;
   }
+}
+
+input[type="checkbox"] {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.4); /* brand-gold glow */
+}
+
+/* Arabic font for background calligraphy */
+@import url("https://fonts.googleapis.com/css2?family=Amiri&display=swap");
+
+.font-arabic {
+  font-family: "Amiri", serif;
 }
