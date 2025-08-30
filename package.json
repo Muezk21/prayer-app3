@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "dev:backend": "cd backend && uvicorn main:app --reload",
-    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && uvicorn main:app --reload --host 0.0.0.0",
+    "dev:frontend": "cd frontend && npm run dev -- --host --port 3000",
     "dev": "npm-run-all --parallel dev:backend dev:frontend"
   },
   "devDependencies": {

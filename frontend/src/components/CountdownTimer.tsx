@@ -4,13 +4,14 @@ import { DateTime, Duration } from 'luxon';
 interface CountdownTimerProps {
   nextPrayerName: string;
   nextPrayerTime: DateTime;
+  onCountdownFinished: () => void;
 }
 
-const CountdownTimer: React.FC<CountdownTimerProps> = ({ nextPrayerName, nextPrayerTime }) => {
+const CountdownTimer: React.FC<CountdownTimerProps> = ({ nextPrayerName, nextPrayerTime, onCountdownFinished }) => {
   const [remaining, setRemaining] = useState<Duration | null>(null);
 
   useEffect(() => {
-    if (!nextPrayerTime) {
+    if (!nextPrayerTime || !nextPrayerTime.isValid) {
       setRemaining(null);
       return;
     }
@@ -23,6 +24,8 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ nextPrayerName, nextPra
         setRemaining(diff);
       } else {
         setRemaining(null);
+        // Add a small delay to prevent a race condition on recalculation
+        onCountdownFinished();
       }
     };
 
@@ -30,7 +33,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ nextPrayerName, nextPra
     const interval = setInterval(updateRemainingTime, 1000);
 
     return () => clearInterval(interval);
-  }, [nextPrayerTime]);
+  }, [nextPrayerTime, onCountdownFinished]);
 
   if (!remaining) {
     return (
@@ -41,15 +44,19 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ nextPrayerName, nextPra
     );
   }
 
-  const { hours, minutes, seconds } = remaining.toObject();
+  const totalSeconds = Math.floor(remaining.as('seconds'));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
 
   return (
     <div className="text-center p-6 rounded-2xl border border-brand-gold/30 mb-4">
       <h2 className="text-xl text-brand-white/80">Time until {nextPrayerName}</h2>
       <div className="text-5xl font-bold text-brand-gold">
-        {String(Math.floor(hours ?? 0)).padStart(2, '0')}:
-        {String(Math.floor(minutes ?? 0)).padStart(2, '0')}:
-        {String(Math.floor(seconds ?? 0)).padStart(2, '0')}
+        {String(hours).padStart(2, '0')}:
+        {String(minutes).padStart(2, '0')}:
+        {String(seconds).padStart(2, '0')}
       </div>
     </div>
   );

@@ -4,10 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-brand-green text-brand-white;
+    @apply text-[#EEBC51];
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
   }
-}
-
-body {
-  color: #222; /* replace with desired color */
 }

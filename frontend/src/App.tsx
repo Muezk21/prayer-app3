@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { DateTime } from 'luxon'
 import { Coordinates, CalculationMethod, PrayerTimes, Qibla, Madhab, CalculationParameters } from 'adhan'
 import CountdownTimer from './components/CountdownTimer'
@@ -37,7 +37,8 @@ export default function App() {
   const [query, setQuery] = useState('')
   const [hijri, setHijri] = useState<string>('')
   const [nextPrayer, setNextPrayer] = useState<{ name: string; time: DateTime } | null>(null);
-  const notifTimers = useRef<number[]>([])
+  const [prayerPassed, setPrayerPassed] = useState(0); // State to trigger recalculation
+  const notifTimers = useRef<number[]>([]);
 
   // Geolocate on first load
   useEffect(() => {
@@ -80,8 +81,8 @@ export default function App() {
   }, [method, madhab])
 
   const times = useMemo(() => {
-    if (!coords) return null
-    const d = DateTime.fromISO(date).setZone(loc?.tz || 'UTC')
+    if (!coords || !loc) return null
+    const d = DateTime.fromISO(date).setZone(loc.tz || 'UTC')
     // Construct JS Date in local tz
     const jsDate = new Date(d.year, d.month - 1, d.day)
     try {
@@ -91,8 +92,8 @@ export default function App() {
     }
   }, [coords, date, params, loc?.tz])
 
-  useEffect(() => {
-    if (!times || !loc) return;
+    useEffect(() => {
+    if (!times || !loc || !coords || !params) return;
 
     const now = DateTime.now().setZone(loc.tz);
     const prayerTimes: [string, Date][] = [
@@ -116,16 +117,14 @@ export default function App() {
 
     // If all prayers for today are done, show Fajr for tomorrow
     if (!next) {
-      const tomorrow = DateTime.fromISO(date).plus({ days: 1 }).setZone(loc.tz || 'UTC');
+      const tomorrow = now.plus({ days: 1 });
       const tomorrowDate = new Date(tomorrow.year, tomorrow.month - 1, tomorrow.day);
-      if (coords) {
-        const tomorrowTimes = new PrayerTimes(coords, tomorrowDate, params);
-        next = { name: 'Fajr', time: DateTime.fromJSDate(tomorrowTimes.fajr).setZone(loc.tz) };
-      }
+      const tomorrowTimes = new PrayerTimes(coords, tomorrowDate, params);
+      next = { name: 'Fajr', time: DateTime.fromJSDate(tomorrowTimes.fajr).setZone(loc.tz) };
     }
-
+    
     setNextPrayer(next);
-  }, [times, loc, date, coords, params]);
+  }, [times, loc, coords, params, prayerPassed]); // Re-run when times change or when a prayer passes
 
   const qiblaDeg = useMemo(() => {
     if (!coords) return null
@@ -209,29 +208,29 @@ export default function App() {
   }
 
   return (
-    <div className="bg-brand-green text-brand-white min-h-screen">
-      <div className="max-w-4xl mx-auto p-4 font-sans">
+    <div className="bg-brand-green min-h-screen">
+      <div className="max-w-4xl mx-auto p-3 sm:p-4 font-sans">
 
-<header className="relative flex flex-col items-center justify-center gap-6 mb-8 text-center">
+<header className="relative flex flex-col items-center justify-center gap-3 mb-6 text-center px-4">
   {/* Background Arabic calligraphy */}
   <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
-    <span className="text-[6rem] md:text-[10rem] font-arabic text-brand-gold opacity-20 select-none whitespace-nowrap mt-14">
+    <span className="absolute inset-0 flex justify-center items-center pointer-events-none text-goldish opacity-20 select-none whitespace-nowrap text-[8vw] sm:text-[6vw] leading-none">
       بسم الله الرحمن الرحيم
     </span>
   </div>
 
   {/* Foreground content */}
-  <div className="relative z-10 flex flex-col items-center justify-center text-center py-12 space-y-6">
-    <h1 className="text-5xl md:text-6xl font-bold text-brand-gold drop-shadow-lg mb-4">
+  <div className="relative z-10 flex flex-col items-center justify-center text-center py-6 space-y-3">
+    <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-brand-gold drop-shadow-lg mb-2">
       Islamic Prayer App
     </h1>
-    <p className="text-lg md:text-xl text-brand-white/80">
+    <p className="text-base sm:text-lg md:text-xl text-brand-white/80 px-4">
       Daily prayers, Qibla, and Hijri calendar
     </p>
   </div>
 
   {/* Toggles */}
-  <div className="relative z-10 flex flex-col md:flex-row items-center justify-center gap-4">
+  <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-6">
     <label className="text-sm md:text-base flex items-center gap-2 cursor-pointer transition-transform duration-300 hover:scale-105">
       <input
         type="checkbox"
@@ -256,93 +255,96 @@ export default function App() {
 
 
 
-      {nextPrayer && <CountdownTimer nextPrayerName={nextPrayer.name} nextPrayerTime={nextPrayer.time} />}
+{nextPrayer && times && <CountdownTimer nextPrayerName={nextPrayer.name} nextPrayerTime={nextPrayer.time} onCountdownFinished={() => setPrayerPassed(c => c + 1)} />}
 
-      <section className="grid md:grid-cols-3 gap-4 mb-4">
-        <div className="md:col-span-2 p-4 rounded-2xl border border-brand-gold/30">
-          <div className="flex items-center gap-2 mb-3">
-            <input
-              placeholder="Search city or address"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              className="border border-brand-white/20 bg-brand-green/50 rounded px-3 py-2 w-full focus:ring-brand-gold focus:border-brand-gold"
-            />
-            <button onClick={handleSearch} className="px-4 py-2 bg-brand-gold text-brand-green font-bold rounded hover:bg-yellow-400 transition-colors">Find</button>
-          </div>
-          <div className="text-sm text-brand-white/70 mb-2">
-            {loc?.label ? `Location: ${loc.label}` : loc ? `Lat ${loc.lat.toFixed(4)}, Lon ${loc.lon.toFixed(4)}` : 'Locating...'}
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            <div>
-              <label className="text-xs text-brand-white/70">Method</label>
-              <select value={method} onChange={e => setMethod(e.target.value as any)} className="w-full border border-brand-white/20 bg-brand-green/50 rounded px-2 py-2">
-                {Object.keys(METHODS).map(k => <option key={k} value={k}>{k}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs text-brand-white/70">Asr Madhab</label>
-              <select value={madhab} onChange={e => setMadhab(e.target.value as any)} className="w-full border border-brand-white/20 bg-brand-green/50 rounded px-2 py-2">
-                <option value="Shafi">Shafi</option>
-                <option value="Hanafi">Hanafi</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs text-brand-white/70">Date</label>
-              <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full border border-brand-white/20 bg-brand-green/50 rounded px-2 py-2"/>
+{/* First section - just Prayer Times and Hijri date */}
+<section className="grid md:grid-cols-3 gap-3 sm:gap-4">
+  <div className="md:col-span-2 p-3 sm:p-4 rounded-2xl border border-brand-gold/30">
+    <h2 className="font-semibold mb-3 text-brand-gold">Prayer Times</h2>
+    {!times || !loc ? (
+      <div>Loading...</div>
+    ) : (
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-2">
+        {[
+          ['Fajr', times.fajr],
+          ['Sunrise', times.sunrise],
+          ['Dhuhr', times.dhuhr],
+          ['Asr', times.asr],
+          ['Maghrib', times.maghrib],
+          ['Isha', times.isha],
+        ].map(([label, t]) => (
+          <div key={label as string} className="border border-brand-white/20 rounded-xl px-2 sm:px-3 py-2 flex items-center justify-between">
+            <div className="text-xs sm:text-sm">{typeof label === 'object' && label instanceof Date ? label.toLocaleString() : label}</div>
+            <div className="font-medium text-brand-gold text-xs sm:text-sm">
+              {formatTime(t as Date, loc.tz, use24h)}
             </div>
           </div>
-        </div>
+        ))}
+      </div>
+    )}
+  </div>
 
-        <div className="p-4 rounded-2xl border border-brand-gold/30">
-          <div className="text-sm text-brand-white/70">Hijri (backend):</div>
-          <div className="text-lg font-semibold text-brand-gold">{hijri || '...'}</div>
-        </div>
-      </section>
+  <div className="p-3 sm:p-4 rounded-2xl border border-brand-gold/30">
+    <div className="text-sm text-brand-gold">Hijri:</div>
+    <div className="text-base sm:text-lg font-semibold text-brand-gold break-words">{hijri || '...'}</div>
+  </div>
+</section>
 
-      <section className="grid md:grid-cols-3 gap-4">
-        <div className="md:col-span-2 p-4 rounded-2xl border border-brand-gold/30">
-          <h2 className="font-semibold mb-3 text-brand-gold">Prayer Times</h2>
-          {!times || !loc ? (
-            <div>Loading...</div>
-          ) : (
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-2">
-              {[
-                ['Fajr', times.fajr],
-                ['Sunrise', times.sunrise],
-                ['Dhuhr', times.dhuhr],
-                ['Asr', times.asr],
-                ['Maghrib', times.maghrib],
-                ['Isha', times.isha],
-              ].map(([label, t]) => (
-                <div key={label as string} className="border border-brand-white/20 rounded-xl px-3 py-2 flex items-center justify-between">
-                  <div>{typeof label === 'object' && label instanceof Date ? label.toLocaleString() : label}</div>
-                  <div className="font-medium text-brand-gold">
-                    {formatTime(t as Date, loc.tz, use24h)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+{/* Second section - Location Search and Qibla side by side */}
+<section className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4">
+  <div className="p-3 sm:p-4 rounded-2xl border border-brand-gold/30">
+    <h2 className="font-semibold mb-3 text-brand-gold">Location Settings</h2>
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-3">
+      <input
+        placeholder="Search city or address"
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        className="border border-brand-white/20 bg-brand-green/50 rounded px-3 py-2 flex-1 focus:ring-brand-gold focus:border-brand-gold text-sm sm:text-base"
+      />
+      <button onClick={handleSearch} className="px-4 py-2 bg-brand-gold text-brand-green font-bold rounded hover:bg-yellow-400 transition-colors whitespace-nowrap">Find</button>
+    </div>
+    <div className="text-xs sm:text-sm text-brand-white/70 mb-2 break-words">
+      {loc?.label ? `Location: ${loc.label}` : loc ? `Lat ${loc.lat.toFixed(4)}, Lon ${loc.lon.toFixed(4)}` : 'Locating...'}
+    </div>
+      <div className="grid grid-cols-1 gap-2">
+        <div>
+          <label className="text-xs text-brand-white/70">Method</label>
+          <select value={method} onChange={e => setMethod(e.target.value as any)} className="w-full border border-brand-white/20 bg-brand-green/50 rounded px-2 py-2 text-xs sm:text-sm">
+            {Object.keys(METHODS).map(k => <option key={k} value={k}>{k}</option>)}
+          </select>
         </div>
+        <div>
+          <label className="text-xs text-brand-white/70">Asr Madhab</label>
+          <select value={madhab} onChange={e => setMadhab(e.target.value as any)} className="w-full border border-brand-white/20 bg-brand-green/50 rounded px-2 py-2 text-xs sm:text-sm">
+            <option value="Shafi">Shafi</option>
+            <option value="Hanafi">Hanafi</option>
+          </select>
+        </div>
+        <div>
+          <label className="text-xs text-brand-white/70">Date</label>
+          <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full border border-brand-white/20 bg-brand-green/50 rounded px-2 py-2 text-xs sm:text-sm"/>
+        </div>
+      </div>
+  </div>
 
-        <div className="p-4 rounded-2xl border border-brand-gold/30">
-          <h2 className="font-semibold mb-3 text-brand-gold">Qibla</h2>
-          {!qiblaDeg ? (
-            <div>Calculating...</div>
-          ) : (
+  <div className="p-3 sm:p-4 rounded-2xl border border-brand-gold/30">
+    <h2 className="font-semibold mb-3 text-brand-gold">Qibla</h2>
+    {!qiblaDeg ? (
+      <div>Calculating...</div>
+    ) : (
             <div className="flex flex-col items-center gap-2">
-              <div className="w-40 h-40 rounded-full border-2 border-brand-white/30 relative">
+              <div className="w-32 sm:w-40 h-32 sm:h-40 rounded-full border-2 border-brand-white/30 relative">
                 <div className="absolute inset-0 flex items-center justify-center text-xs text-brand-white/70">N</div>
                 <div className="origin-bottom absolute left-1/2 -translate-x-1/2 bottom-1/2 w-0 h-1/2"
                      style={{ transform: `translateX(-50%) rotate(${qiblaDeg}deg)` }}>
                   <div className="w-1 h-full bg-brand-gold mx-auto rounded-full"></div>
                 </div>
               </div>
-              <div className="text-sm text-brand-white/70">Bearing: {qiblaDeg.toFixed(1)}° from North</div>
+              <div className="text-xs sm:text-sm text-brand-white/70 text-center">Bearing: {qiblaDeg.toFixed(1)}° from North</div>
             </div>
           )}
         </div>
-      </section>
+      </section> 
 
       <footer className="text-center text-xs text-brand-white/50 mt-8">
         Built with React + FastAPI. Methods via adhan.js. Your location never leaves your browser except for Hijri date request.
