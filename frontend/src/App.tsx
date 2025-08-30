@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { DateTime } from 'luxon'
 import { Coordinates, CalculationMethod, PrayerTimes, Qibla, Madhab, CalculationParameters } from 'adhan'
 import CountdownTimer from './components/CountdownTimer'
+import SideMenu from "./components/SideMenu"
+
 
 type Location = { lat: number; lon: number; tz: string; label?: string }
 

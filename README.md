@@ -1,7 +1,8 @@
 NEXT STEPS
 
-Update text colors (non visible ones and change the gold)
-Place features in more appropriate layout (one bg color)
+Dynamic checkboxes
+dynamic bg
+side menu?
 break down each block of main.py
 update UI
 
