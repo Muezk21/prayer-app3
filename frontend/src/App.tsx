@@ -20,6 +20,22 @@ const METHODS: Record<string, CalculationParameters> = {
   'Turkey': CalculationMethod.Turkey()
 }
 
+// Important Islamic dates for the next year (2025-2026)
+const IMPORTANT_DATES = [
+  { name: "Mawlid an-Nabi", date: "2025-09-04", hijriDate: "12 Rabi al-Awwal 1447" },
+  { name: "Isra and Mi'raj", date: "2026-01-26", hijriDate: "27 Rajab 1447" },
+  { name: "Mid-Sha'ban (Shab-e-Barat)", date: "2026-02-13", hijriDate: "15 Sha'ban 1447" },
+  { name: "Ramadan Begins", date: "2026-02-28", hijriDate: "1 Ramadan 1447" },
+  { name: "Laylat al-Qadr", date: "2026-03-26", hijriDate: "27 Ramadan 1447" },
+  { name: "Eid al-Fitr", date: "2026-03-29", hijriDate: "1 Shawwal 1447" },
+  { name: "Day of Arafah", date: "2026-06-03", hijriDate: "9 Dhul Hijjah 1447" },
+  { name: "Eid al-Adha", date: "2026-06-04", hijriDate: "10 Dhul Hijjah 1447" },
+  { name: "Islamic New Year", date: "2026-06-25", hijriDate: "1 Muharram 1448" },
+  { name: "Day of Ashura", date: "2026-07-04", hijriDate: "10 Muharram 1448" },
+  { name: "Mawlid an-Nabi", date: "2026-08-23", hijriDate: "12 Rabi al-Awwal 1448" }
+];
+
+
 const formatTime = (d: Date, tz: string, use24h: boolean) => {
   const dt = DateTime.fromJSDate(d).setZone(tz)
   return dt.toFormat(use24h ? 'HH:mm' : 'h:mm a')
@@ -30,15 +46,28 @@ const defaultTZ = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
 export default function App() {
   const [loc, setLoc] = useState<Location | null>(null)
   const [date, setDate] = useState(DateTime.now().toISODate()!)
-  const [method, setMethod] = useState<keyof typeof METHODS>('Muslim World League')
-  const [madhab, setMadhab] = useState<'Shafi' | 'Hanafi'>('Shafi')
+  const [method, setMethod] = useState<keyof typeof METHODS>('ISNA (North America)')
+  const [madhab, setMadhab] = useState<'Shafi' | 'Hanafi'>('Hanafi')
   const [use24h, setUse24h] = useState(false)
   const [notifOn, setNotifOn] = useState(false)
   const [query, setQuery] = useState('')
   const [hijri, setHijri] = useState<string>('')
   const [nextPrayer, setNextPrayer] = useState<{ name: string; time: DateTime } | null>(null);
   const [prayerPassed, setPrayerPassed] = useState(0); // State to trigger recalculation
+  const [showCalendar, setShowCalendar] = useState(false)
   const notifTimers = useRef<number[]>([]);
+
+    // Get upcoming important dates (next 3)
+  const upcomingDates = useMemo(() => {
+    const today = DateTime.now().toISODate()!
+    return IMPORTANT_DATES
+      .filter(event => event.date >= today)
+      .slice(0, 3)
+      .map(event => ({
+        ...event,
+        daysUntil: DateTime.fromISO(event.date).diff(DateTime.now(), 'days').days
+      }))
+  }, [])
 
   // Geolocate on first load
   useEffect(() => {
@@ -211,34 +240,34 @@ export default function App() {
     <div className="bg-brand-green min-h-screen">
       <div className="max-w-4xl mx-auto p-3 sm:p-4 font-sans">
 
-<header className="relative flex flex-col items-center justify-center gap-3 mb-6 text-center px-4">
-  {/* Background Arabic calligraphy */}
-  <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
-    <span className="absolute inset-0 flex justify-center items-center pointer-events-none text-goldish opacity-20 select-none whitespace-nowrap text-[8vw] sm:text-[6vw] leading-none">
-      بسم الله الرحمن الرحيم
-    </span>
-  </div>
+        <header className="relative flex flex-col items-center justify-center gap-3 mb-6 text-center px-4">
+          {/* Background Arabic calligraphy */}
+          <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
+            <span className="absolute inset-0 flex justify-center items-center pointer-events-none text-goldish opacity-20 select-none whitespace-nowrap text-[8vw] sm:text-[6vw] leading-none">
+              بسم الله الرحمن الرحيم
+            </span>
+          </div>
 
-  {/* Foreground content */}
-  <div className="relative z-10 flex flex-col items-center justify-center text-center py-6 space-y-3">
-    <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-brand-gold drop-shadow-lg mb-2">
-      Islamic Prayer App
-    </h1>
-    <p className="text-base sm:text-lg md:text-xl text-brand-white/80 px-4">
-      Daily prayers, Qibla, and Hijri calendar
-    </p>
-  </div>
-</header>
+          {/* Foreground content */}
+          <div className="relative z-10 flex flex-col items-center justify-center text-center py-6 space-y-3">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-brand-gold drop-shadow-lg mb-2">
+              Islamic Prayer App
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl text-brand-white/80 px-4">
+              Daily prayers, Qibla, and Hijri calendar
+            </p>
+          </div>
+        </header>
 
-{nextPrayer && times && <CountdownTimer nextPrayerName={nextPrayer.name} nextPrayerTime={nextPrayer.time} onCountdownFinished={() => setPrayerPassed(c => c + 1)} />}
+        {nextPrayer && times && <CountdownTimer nextPrayerName={nextPrayer.name} nextPrayerTime={nextPrayer.time} onCountdownFinished={() => setPrayerPassed(c => c + 1)} />}
 
-{/* First section - just Prayer Times and Hijri date */}
-<section className="grid md:grid-cols-3 gap-3 sm:gap-4">
-  <div className="md:col-span-2 p-3 sm:p-4 rounded-2xl border border-brand-gold">
-    <h2 className="font-semibold mb-3 text-brand-gold">Prayer Times</h2>
-    {!times || !loc ? (
-      <div>Loading...</div>
-    ) : (
+        {/* First section - just Prayer Times and Hijri date */}
+        <section className="grid md:grid-cols-3 gap-3 sm:gap-4">
+          <div className="md:col-span-2 p-3 sm:p-4 rounded-2xl border border-brand-gold">
+            <h2 className="font-semibold mb-3 text-brand-gold">Prayer Times</h2>
+            {!times || !loc ? (
+              <div>Loading...</div>
+            ) : (
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-2">
         {[
           ['Fajr', times.fajr],
@@ -260,8 +289,60 @@ export default function App() {
   </div>
 
   <div className="p-3 sm:p-4 rounded-2xl border border-brand-gold">
-    <div className="text-sm text-brand-gold">Hijri:</div>
-    <div className="text-base sm:text-lg font-semibold text-brand-gold break-words">{hijri || '...'}</div>
+    <div className="flex items-center justify-between mb-3">
+      <div className="text-sm text-brand-gold">Hijri:</div>
+      <button
+        onClick={() => setShowCalendar(!showCalendar)}
+        className="text-xs bg-brand-gold text-brand-green px-2 py-1 rounded hover:bg-yellow-400 transition-colors"
+      >
+        📅 {showCalendar ? 'Hide' : 'Calendar'}
+      </button>
+    </div>
+    <div className="text-base sm:text-lg font-semibold text-brand-gold break-words mb-4">
+      {hijri || '...'}
+    </div>
+
+    {/* Important Upcoming Dates */}
+    <div className="space-y-3">
+      <h3 className="text-sm font-semibold text-brand-gold border-b border-brand-gold/30 pb-1">
+        Upcoming Events
+      </h3>
+      {upcomingDates.map((event, idx) => (
+        <div key={idx} className="bg-brand-green/10 p-2 rounded-lg border border-brand-gold/20">
+          <div className="text-xs font-semibold text-brand-gold">{event.name}</div>
+          <div className="text-xs text-brand-white/80">{event.hijriDate}</div>
+          <div className="text-xs text-brand-white/60">
+            {Math.ceil(event.daysUntil)} days away
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* Expandable Full Calendar */}
+    {showCalendar && (
+      <div className="mt-4 p-3 bg-brand-green/10 rounded-lg border border-brand-gold/30">
+        <h3 className="text-sm font-semibold text-brand-gold mb-3">Islamic Calendar 2025</h3>
+        <div className="space-y-2 max-h-40 overflow-y-auto">
+          {IMPORTANT_DATES.map((event, idx) => {
+            const eventDate = DateTime.fromISO(event.date)
+            const isPast = eventDate < DateTime.now()
+            return (
+              <div key={idx} className={`p-2 rounded border text-xs ${
+                isPast 
+                  ? 'border-brand-white/10 text-brand-white/40' 
+                  : 'border-brand-gold/20 text-brand-white'
+              }`}>
+                <div className="font-medium">{event.name}</div>
+                <div className="text-brand-gold/80">{event.hijriDate}</div>
+                <div className="text-brand-white/60">
+                  {eventDate.toFormat('MMM dd, yyyy')}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )}
   </div>
 </section>
 

@@ -19,8 +19,8 @@ type SideMenuProps = {
 };
 
 const METHODS = {
-  'Muslim World League': 'Muslim World League',
   'ISNA (North America)': 'ISNA (North America)',
+  'Muslim World League': 'Muslim World League',
   'Umm al-Qura (Makkah)': 'Umm al-Qura (Makkah)',
   'Egyptian General Authority': 'Egyptian General Authority',
   'Dubai': 'Dubai',
@@ -30,7 +30,6 @@ const METHODS = {
   'Tehran': 'Tehran',
   'Turkey': 'Turkey'
 };
-
 
 const SideMenu: React.FC<SideMenuProps> = ({
   use24h,
@@ -53,12 +52,22 @@ const SideMenu: React.FC<SideMenuProps> = ({
 
   return (
     <>
+      {/* Click outside overlay */}
+      {open && (
+        <div 
+          className="fixed inset-0 z-30" 
+          onClick={() => setOpen(false)}
+        />
+      )}
+      
       {/* Toggle Button */}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed top-4 right-4 z-50 bg-brand-gold text-brand-green px-4 py-2 rounded-lg shadow-lg"
+        className={`fixed font-bold top-4 right-4 z-50 text-brand-green bg-brand-gold py-2 rounded-lg transition-all duration-300 hover:bg-yellow-400 flex items-center justify-center ${
+          open ? "w-56 text-center px-10" : "px-4"
+        }`}
       >
-        ☰ Settings
+        {open ? "Settings" : "☰" }
       </button>
 
       {/* Side Drawer */}
@@ -67,28 +76,27 @@ const SideMenu: React.FC<SideMenuProps> = ({
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="p-6">
-          <h2 className="text-xl font-bold mb-4">Settings</h2>
+        <div className="p-6 pt-16">
           <div className="flex flex-col gap-4">
 
             {/* Clock Format Toggle */}
-            <label className="flex items-center gap-2">
+            <label className="flex items-center gap-2 hover:scale-105 transition-all duration-300 p-2 rounded cursor-pointer hover:outline hover:outline-2 hover:outline-amber-400 hover:bg-amber-100/30">
               <input
                 type="checkbox"
                 checked={use24h}
                 onChange={(e) => setUse24h(e.target.checked)}
-                className="accent-brand-gold"
+                className="accent-brand-gold hover:scale-110 transition-all duration-300 hover:outline hover:outline-2 hover:outline-amber-400"
               />
               24h Clock
             </label>
 
             {/* Prayer Reminders */}
-            <label className="flex items-center gap-2">
+            <label className="flex items-center gap-2 hover:scale-105 transition-all duration-300 p-2 rounded cursor-pointer hover:outline hover:outline-2 hover:outline-amber-400 hover:bg-amber-100/30">
               <input
                 type="checkbox"
                 checked={notifOn}
                 onChange={(e) => setNotifOn(e.target.checked)}
-                className="accent-brand-gold"
+                className="accent-brand-gold hover:scale-110 transition-all duration-300 hover:outline hover:outline-2 hover:outline-amber-400"
               />
               Prayer Reminders
             </label>
@@ -122,34 +130,25 @@ const SideMenu: React.FC<SideMenuProps> = ({
 
             {/* Location Search */}
             <div>
-              <label className="block font-semibold mb-1">Location Search</label>
-              <input
-                type="text"
-                placeholder="Enter city"
-                value={loc?.label || ""}
-                onChange={(e) =>
-                  setLoc({ ...loc, label: e.target.value })
-                }
-                className="border rounded p-1 w-full"
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold mb-1">Location Search</label>
-              <div className="flex gap-2 mb-2">
+              <label className="block font-semibold mb-1">Where are you located?</label>
+              <div className="flex flex-col gap-2 mb-2">
                 <input
                   type="text"
                   placeholder="Search city"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  className="border rounded p-1 flex-1"
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  className="border rounded p-2 w-full"
                 />
-                <button onClick={handleSearch} className="px-3 py-1 bg-brand-gold text-brand-green rounded">
+                <button onClick={handleSearch} 
+                className="w-full py-2 bg-brand-gold text-brand-green font-semibold rounded hover:bg-yellow-400 transition-colors"
+                >
                   Find
                 </button>
               </div>
             </div>
 
+            {/* Date Picker */}
             <div>
               <label className="block font-semibold mb-1">Date</label>
               <input
