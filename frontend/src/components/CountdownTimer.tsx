@@ -51,7 +51,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ nextPrayerName, nextPra
 
 
   return (
-    <div className="text-center p-6 rounded-2xl border border-brand-gold/30 mb-4">
+    <div className="text-center p-6 rounded-2xl border border-brand-gold mb-4">
       <h2 className="text-xl text-brand-white/80">Time until {nextPrayerName}</h2>
       <div className="text-5xl font-bold text-brand-gold">
         {String(hours).padStart(2, '0')}:

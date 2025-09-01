@@ -228,38 +228,13 @@ export default function App() {
       Daily prayers, Qibla, and Hijri calendar
     </p>
   </div>
-
-  {/* Toggles */}
-  <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-6">
-    <label className="text-sm md:text-base flex items-center gap-2 cursor-pointer transition-transform duration-300 hover:scale-105">
-      <input
-        type="checkbox"
-        className="mr-2 accent-brand-gold"
-        checked={use24h}
-        onChange={e => setUse24h(e.target.checked)}
-      />
-      24h Clock
-    </label>
-    
-    <label className="text-sm md:text-base flex items-center gap-2 cursor-pointer transition-transform duration-300 hover:scale-105">
-      <input
-        type="checkbox"
-        className="mr-2 accent-brand-gold"
-        checked={notifOn}
-        onChange={e => setNotifOn(e.target.checked)}
-      />
-      Prayer Reminders
-    </label>
-  </div>
 </header>
-
-
 
 {nextPrayer && times && <CountdownTimer nextPrayerName={nextPrayer.name} nextPrayerTime={nextPrayer.time} onCountdownFinished={() => setPrayerPassed(c => c + 1)} />}
 
 {/* First section - just Prayer Times and Hijri date */}
 <section className="grid md:grid-cols-3 gap-3 sm:gap-4">
-  <div className="md:col-span-2 p-3 sm:p-4 rounded-2xl border border-brand-gold/30">
+  <div className="md:col-span-2 p-3 sm:p-4 rounded-2xl border border-brand-gold">
     <h2 className="font-semibold mb-3 text-brand-gold">Prayer Times</h2>
     {!times || !loc ? (
       <div>Loading...</div>
@@ -275,7 +250,7 @@ export default function App() {
         ].map(([label, t]) => (
           <div key={label as string} className="border border-brand-white/20 rounded-xl px-2 sm:px-3 py-2 flex items-center justify-between">
             <div className="text-xs sm:text-sm">{typeof label === 'object' && label instanceof Date ? label.toLocaleString() : label}</div>
-            <div className="font-medium text-brand-gold text-xs sm:text-sm">
+            <div className="font-medium text-brand-white text-xs sm:text-sm">
               {formatTime(t as Date, loc.tz, use24h)}
             </div>
           </div>
@@ -284,72 +259,34 @@ export default function App() {
     )}
   </div>
 
-  <div className="p-3 sm:p-4 rounded-2xl border border-brand-gold/30">
+  <div className="p-3 sm:p-4 rounded-2xl border border-brand-gold">
     <div className="text-sm text-brand-gold">Hijri:</div>
     <div className="text-base sm:text-lg font-semibold text-brand-gold break-words">{hijri || '...'}</div>
   </div>
 </section>
 
-{/* Second section - Location Search and Qibla side by side */}
-<section className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4">
-  <div className="p-3 sm:p-4 rounded-2xl border border-brand-gold/30">
-    <h2 className="font-semibold mb-3 text-brand-gold">Location Settings</h2>
-    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-3">
-      <input
-        placeholder="Search city or address"
-        value={query}
-        onChange={e => setQuery(e.target.value)}
-        className="border border-brand-white/20 bg-brand-green/50 rounded px-3 py-2 flex-1 focus:ring-brand-gold focus:border-brand-gold text-sm sm:text-base"
-      />
-      <button onClick={handleSearch} className="px-4 py-2 bg-brand-gold text-brand-green font-bold rounded hover:bg-yellow-400 transition-colors whitespace-nowrap">Find</button>
-    </div>
-    <div className="text-xs sm:text-sm text-brand-white/70 mb-2 break-words">
-      {loc?.label ? `Location: ${loc.label}` : loc ? `Lat ${loc.lat.toFixed(4)}, Lon ${loc.lon.toFixed(4)}` : 'Locating...'}
-    </div>
-      <div className="grid grid-cols-1 gap-2">
-        <div>
-          <label className="text-xs text-brand-white/70">Method</label>
-          <select value={method} onChange={e => setMethod(e.target.value as any)} className="w-full border border-brand-white/20 bg-brand-green/50 rounded px-2 py-2 text-xs sm:text-sm">
-            {Object.keys(METHODS).map(k => <option key={k} value={k}>{k}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="text-xs text-brand-white/70">Asr Madhab</label>
-          <select value={madhab} onChange={e => setMadhab(e.target.value as any)} className="w-full border border-brand-white/20 bg-brand-green/50 rounded px-2 py-2 text-xs sm:text-sm">
-            <option value="Shafi">Shafi</option>
-            <option value="Hanafi">Hanafi</option>
-          </select>
-        </div>
-        <div>
-          <label className="text-xs text-brand-white/70">Date</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full border border-brand-white/20 bg-brand-green/50 rounded px-2 py-2 text-xs sm:text-sm"/>
-        </div>
-      </div>
-  </div>
-
-  <div className="p-3 sm:p-4 rounded-2xl border border-brand-gold/30">
-    <h2 className="font-semibold mb-3 text-brand-gold">Qibla</h2>
-    {!qiblaDeg ? (
-      <div>Calculating...</div>
-    ) : (
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-32 sm:w-40 h-32 sm:h-40 rounded-full border-2 border-brand-white/30 relative">
-                <div className="absolute inset-0 flex items-center justify-center text-xs text-brand-white/70">N</div>
-                <div className="origin-bottom absolute left-1/2 -translate-x-1/2 bottom-1/2 w-0 h-1/2"
-                     style={{ transform: `translateX(-50%) rotate(${qiblaDeg}deg)` }}>
-                  <div className="w-1 h-full bg-brand-gold mx-auto rounded-full"></div>
-                </div>
-              </div>
-              <div className="text-xs sm:text-sm text-brand-white/70 text-center">Bearing: {qiblaDeg.toFixed(1)}° from North</div>
-            </div>
-          )}
-        </div>
-      </section> 
-
       <footer className="text-center text-xs text-brand-white/50 mt-8">
         Built with React + FastAPI. Methods via adhan.js. Your location never leaves your browser except for Hijri date request.
       </footer>
     </div>
+    
+    <SideMenu
+    use24h={use24h}
+    setUse24h={setUse24h}
+    notifOn={notifOn}
+    setNotifOn={setNotifOn}
+    method={method}
+    setMethod={setMethod}
+    madhab={madhab}
+    setMadhab={setMadhab}
+    loc={loc}
+    setLoc={setLoc}
+    query={query}
+    setQuery={setQuery}
+    handleSearch={handleSearch}
+    date={date}
+    setDate={setDate}
+    />
   </div>
   )
 }

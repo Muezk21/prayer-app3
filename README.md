@@ -1,6 +1,6 @@
 NEXT STEPS
 
-Dynamic checkboxes
+Qibla box size adjustment.
 dynamic bg
 side menu?
 break down each block of main.py
