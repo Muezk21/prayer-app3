@@ -1,10 +1,8 @@
 NEXT STEPS
-
-Qibla box size adjustment.
-dynamic bg
-side menu?
-break down each block of main.py
-update UI
+Fix calendar to open the actual calendar.
+deployment options
+additional features
+highlight next prayer
 
 # Islamic Prayer App
 
