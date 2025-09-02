@@ -1,8 +1,7 @@
 NEXT STEPS
-Fix calendar to open the actual calendar.
+
 deployment options
 additional features
-highlight next prayer
 
 # Islamic Prayer App
 
