@@ -1,22 +1,44 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { DateTime } from 'luxon'
-import { Coordinates, CalculationMethod, PrayerTimes, Qibla, Madhab, CalculationParameters } from 'adhan'
+import { Coordinates, CalculationMethod, PrayerTimes, Qibla, Madhab, CalculationParameters, HighLatitudeRule, PolarCircleResolution } from 'adhan'
 import CountdownTimer from './components/CountdownTimer'
 import SideMenu from "./components/SideMenu"
 
 type Location = { lat: number; lon: number; tz: string; label?: string }
 
-const METHODS: Record<string, CalculationParameters> = {
-  'Muslim World League': CalculationMethod.MuslimWorldLeague(),
-  'ISNA (North America)': CalculationMethod.NorthAmerica(),
-  'Umm al-Qura (Makkah)': CalculationMethod.UmmAlQura(),
-  'Egyptian General Authority': CalculationMethod.Egyptian(),
-  'Dubai': CalculationMethod.Dubai(),
-  'Kuwait': CalculationMethod.Kuwait(),
-  'Qatar': CalculationMethod.Qatar(),
-  'Singapore': CalculationMethod.Singapore(),
-  'Tehran': CalculationMethod.Tehran(),
-  'Turkey': CalculationMethod.Turkey()
+type MethodName =
+  | 'ISNA (North America)'
+  | 'Muslim World League'
+  | 'Umm al-Qura (Makkah)'
+  | 'Egyptian General Authority'
+  | 'Dubai'
+  | 'Kuwait'
+  | 'Qatar'
+  | 'Singapore'
+  | 'Tehran'
+  | 'Turkey'
+
+// Mapping of method names to their corresponding CalculationParameters functions
+
+const methodMapping: Record<string, () => CalculationParameters> = {
+  'ISNA (North America)': CalculationMethod.NorthAmerica,
+  'Muslim World League': CalculationMethod.MuslimWorldLeague,
+  'Umm al-Qura (Makkah)': CalculationMethod.UmmAlQura,
+  'Egyptian General Authority': CalculationMethod.Egyptian,
+  'Dubai': CalculationMethod.Dubai,
+  'Kuwait': CalculationMethod.Kuwait,
+  'Qatar': CalculationMethod.Qatar,
+  'Singapore': CalculationMethod.Singapore,
+  'Tehran': CalculationMethod.Tehran,
+  'Turkey': CalculationMethod.Turkey
+}
+
+function makeParams(method: keyof typeof methodMapping, madhab: 'Shafi' | 'Hanafi') {
+  const base = methodMapping[method]() // fresh CalculationParameters
+  base.madhab = madhab === 'Hanafi' ? Madhab.Hanafi : Madhab.Shafi
+  base.highLatitudeRule = HighLatitudeRule.MiddleOfTheNight
+  base.polarCircleResolution = PolarCircleResolution.AqrabBalad
+  return base
 }
 
 // Important Islamic dates for the next year (2025-2026)
@@ -78,12 +100,10 @@ const getNextPrayerName = (times: PrayerTimes, loc: Location): string | null => 
   return 'Fajr' // Next day's Fajr
 }
 
-
-
 export default function App() {
   const [loc, setLoc] = useState<Location | null>(null)
   const [date, setDate] = useState(DateTime.now().toISODate()!)
-  const [method, setMethod] = useState<keyof typeof METHODS>('ISNA (North America)')
+  const [method, setMethod] = useState<keyof typeof methodMapping>('ISNA (North America)')
   const [madhab, setMadhab] = useState<'Shafi' | 'Hanafi'>('Hanafi')
   const [use24h, setUse24h] = useState(false)
   const [notifOn, setNotifOn] = useState(false)
@@ -139,11 +159,7 @@ export default function App() {
     return new Coordinates(loc.lat, loc.lon)
   }, [loc])
 
-  const params = useMemo(() => {
-    const p = METHODS[method]
-    p.madhab = (madhab === 'Hanafi') ? Madhab.Hanafi : Madhab.Shafi
-    return p
-  }, [method, madhab])
+  const params = useMemo(() => makeParams(method, madhab), [method, madhab])
 
   const times = useMemo(() => {
     if (!coords || !loc) return null
