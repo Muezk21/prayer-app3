@@ -4,83 +4,120 @@ when clicking side menu, add smoothness to opening
 deployment options
 additional features
 
-# Islamic Prayer App
+# 🕌 Islamic Prayer Times App
 
-A modern, dynamic web app for prayer times, Qibla direction, and Hijri date.
+A modern, responsive web app that calculates daily prayer times based on your location, madhab, and calculation method. Built with React + Vite + FastAPI, it features countdowns, reminders, Qibla direction, and Hijri conversion — all wrapped in a clean, accessible UI.
 
-- **Frontend:** React + Vite + Tailwind
-- **Backend:** Python FastAPI (serves API + static build)
-- **Prayer Calculations:** [adhan.js](https://github.com/batoulapps/adhan-js)
-- **Qibla:** adhan.js (client) and a Python endpoint example
-- **Hijri:** Python API via `hijri-converter`
+---
 
-## Features
+## 🚀 Features
 
-- Auto-detects your location (or search any city)
-- Multiple calculation methods + Shafi / Hanafi Asr
-- 12h/24h time formatting
-- Browser notifications (soft chime) for prayer reminders
-- Clean UI with responsive cards
-- Qibla compass (numeric bearing with a visual indicator)
-- Hijri date via backend
+- 🌍 Location-based prayer time calculation using [Adhan.js](https://github.com/batoulapps/adhan-js)
+- 🕰️ 12h/24h clock toggle
+- 🔔 Prayer reminders (browser notifications)
+- 🧭 Qibla direction calculator
+- 📅 Hijri date conversion via FastAPI
+- 🧠 Settings saved to localStorage
+- 📱 Mobile-friendly responsive design
+- ♿ Accessibility enhancements (ARIA labels, focus trap, contrast checks)
 
-## Prerequisites
+---
 
-- **Node.js** 18+
-- **Python** 3.10+
+## 🛠️ Tech Stack
 
-## Quick Start
+| Layer       | Tech Used                      | Why It Was Chosen                   |
+| ----------- | ------------------------------ | ----------------------------------- |
+| Frontend    | React + Vite + TypeScript      | Fast dev experience, type safety    |
+| Styling     | Tailwind CSS                   | Utility-first, responsive design    |
+| Time Logic  | Luxon                          | Robust timezone and date handling   |
+| Prayer Calc | Adhan.js                       | Accurate, madhab-aware prayer times |
+| Backend     | FastAPI                        | Lightweight, async-friendly API     |
+| Testing     | Vitest + React Testing Library | Fast, modern unit testing           |
+| CI          | GitHub Actions                 | Auto lint + test on push            |
+
+---
+
+## 📦 How to Run Locally
+
+### 1. Clone the repo
 
 ```bash
-# 1) Frontend
-cd frontend
+git clone https://github.com/your-username/prayer-app.git
+cd prayer-app
+```
+
+### 2. Install frontend dependencies
+
+```bash
 npm install
-npm run build
+npm run dev
+```
 
-# 2) Backend
-cd ../backend
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-# macOS/Linux: source .venv/bin/activate
-pip install -r requirements.txt
+### 3. Run the FastAPI backend
 
-# 3) Run API + static hosting
+```bash
+cd backend
 uvicorn main:app --reload
 ```
 
-Open http://127.0.0.1:8000/ in your browser.
+> The frontend proxies `/api` requests to FastAPI (e.g. `/api/hijri`, `/api/search`). Make sure both servers are running.
 
-> If you prefer to develop the frontend interactively, run `npm run dev` in `/frontend` and access the API at `http://127.0.0.1:8000`. (CORS is enabled for dev.)
+---
 
-## Notes
+## 🧪 Testing
 
-- **Permissions:** the browser will ask for location (for accurate times) and notifications (if you toggle reminders).
-- **Hijri converter:** make sure `hijri-converter` is installed; otherwise the API returns a fallback message.
-- **Qibla bearing:** shown numerically and with a simple compass indicator. On some devices, compass heading may need orientation permission in the browser settings.
-
-## Project Structure
-
-```
-islamic-prayer-app/
-  backend/
-    main.py
-    requirements.txt
-  frontend/
-    index.html
-    package.json
-    tsconfig.json
-    vite.config.ts
-    tailwind.config.js
-    postcss.config.js
-    src/
-      App.tsx
-      main.tsx
-      styles.css
-    public/
+```bash
+npm run test
 ```
 
-## Customization
+Includes:
 
-- Change default calculation method in `App.tsx` by switching the `METHODS` map default.
-- Styling uses Tailwind; edit `/src/styles.css` or component classes.
-- To add more features (monthly timetable, persistent settings), store options in `localStorage` and/or create additional API routes in `main.py`.
+- ✅ “Next prayer calculation picks tomorrow Fajr after Isha”
+- ✅ “Switching to 24h clock changes displayed time format”
+
+---
+
+## 📸 Screenshots
+
+![Prayer Times UI](screenshots/prayer-times.png)  
+![Settings Drawer](screenshots/settings-drawer.png)
+
+> You can also embed a GIF demo using [LICEcap](https://www.cockos.com/licecap/) or Loom.
+
+---
+
+## 🧭 Roadmap
+
+- [ ] PWA support (offline mode, installable)
+- [ ] High-latitude rule handling
+- [ ] Internationalization (i18n)
+- [ ] Location autocomplete
+- [ ] Reminder scheduling via service workers
+
+---
+
+## ⚠️ Known Limitations
+
+- No persistent backend storage (all settings are local)
+- Location search relies on OpenStreetMap and may be rate-limited
+- Notifications require browser permission and may not work on all devices
+
+---
+
+## ♿ Accessibility Considerations
+
+- ARIA labels on interactive elements
+- Focus trap inside settings drawer
+- Escape key closes drawer
+- Color contrast tested for WCAG compliance
+
+---
+
+## 💼 Why This Matters
+
+This project demonstrates:
+
+- Clean architecture with shared context and hooks
+- Real-world API integration and proxying
+- Accessibility and performance awareness
+- CI, linting, and testing discipline
