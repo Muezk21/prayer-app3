@@ -33,11 +33,18 @@ interface SettingsContextType {
   setQuery: (val: string) => void;
 
   recentLocations: Location[];
+
+  locationOverride: Location | null;
+  setLocationOverride: (val: Location | null) => void;
+  autoLocationEnabled: boolean;
+  setAutoLocationEnabled: (val: boolean) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [locationOverride, setLocationOverride] = useState<Location | null>(null);
+  const [autoLocationEnabled, setAutoLocationEnabled] = useState(true);
   const [use24h, setUse24h] = useState(() => JSON.parse(localStorage.getItem("use24h") || "false"));
   const [notifOn, setNotifOn] = useState(() => JSON.parse(localStorage.getItem("notifOn") || "false"));
   const [method, setMethod] = useState(localStorage.getItem("method") || "ISNA (North America)");
@@ -67,6 +74,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem("madhab", madhab);
   }, [use24h, notifOn, method, madhab]);
 
+    useEffect(() => {
+    localStorage.setItem("autoLocationEnabled", JSON.stringify(autoLocationEnabled));
+    localStorage.setItem("locationOverride", JSON.stringify(locationOverride));
+  }, [autoLocationEnabled, locationOverride]);
+
+
   return (
     <SettingsContext.Provider
       value={{
@@ -85,6 +98,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         query,
         setQuery,
         recentLocations,
+        locationOverride,
+        setLocationOverride,
+        autoLocationEnabled,
+        setAutoLocationEnabled,
+
       }}
     >
       {children}

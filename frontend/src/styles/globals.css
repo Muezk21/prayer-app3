@@ -1,21 +1,19 @@
 /* Just these 3 imports */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Amiri&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri&display=swap');
 
 /* Arabic font class */
 .font-arabic {
-  font-family: "Amiri", serif;
+  font-family: 'Amiri', serif;
 }
 
 /* Checkbox styling */
-input[type="checkbox"] {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+input[type='checkbox'] {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
-input[type="checkbox"]:checked {
+input[type='checkbox']:checked {
   transform: scale(1.1);
   box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.4);
-}
-
-body {
-  font-family: var(--font-family-primary);
 }
