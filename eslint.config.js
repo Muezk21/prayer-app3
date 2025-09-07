@@ -16,7 +16,8 @@ export default [
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
-        project: './tsconfig.json',
+        project: './frontend/tsconfig.json',
+        tsconfigRootDir: __dirname,
       },
     },
   },
