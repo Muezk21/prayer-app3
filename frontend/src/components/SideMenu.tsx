@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useEffect } from 'react';
 import { useSettings } from '../context/SettingsContext';
+import { useRef } from 'react';
 
 const SideMenu: React.FC = () => {
   const {
@@ -21,6 +22,13 @@ const SideMenu: React.FC = () => {
   } = useSettings();
 
   const [open, setOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (open && drawerRef.current) {
+      drawerRef.current.focus();
+    }
+  }, [open]);
 
   const handleSearch = async () => {
   if (!query.trim()) return;
@@ -77,12 +85,20 @@ useEffect(() => {
   return () => clearTimeout(delay);
 }, [query]);
 
+useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') setOpen(false);
+  };
+  window.addEventListener('keydown', handleKeyDown);
+  return () => window.removeEventListener('keydown', handleKeyDown);
+}, []);
 
   return (
     <>
       {/* Click outside overlay */}
       {open && (
         <div 
+          aria-label="Close settings drawer"
           className="fixed inset-0 z-30" 
           onClick={() => setOpen(false)}
         />
@@ -90,6 +106,7 @@ useEffect(() => {
       
       {/* Toggle Button */}
       <button
+        aria-label={open ? "Close settings menu" : "Open settings menu"}
         onClick={() => setOpen(!open)}
         className={`fixed font-bold top-4 right-4 z-50 text-brand-green bg-brand-gold py-2 rounded-lg transition-all duration-300 hover:bg-yellow-400 flex items-center justify-center ${
           open ? "w-56 text-center px-10" : "px-4"
@@ -100,6 +117,8 @@ useEffect(() => {
 
       {/* Side Drawer */}
       <div
+        ref={drawerRef}
+        tabIndex={-1}
         className={`fixed top-0 right-0 h-full w-64 bg-brand-white text-brand-green shadow-xl transform transition-transform duration-300 z-40 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
