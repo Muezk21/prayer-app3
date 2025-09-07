@@ -1,5 +1,6 @@
 NEXT STEPS
 
+when clicking side menu, add smoothness to opening
 deployment options
 additional features
 
