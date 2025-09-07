@@ -1,8 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { DateTime } from 'luxon'
 import { Coordinates, CalculationMethod, PrayerTimes, Qibla, Madhab, CalculationParameters, HighLatitudeRule, PolarCircleResolution } from 'adhan'
+import Header from './components/Header'
 import CountdownTimer from './components/CountdownTimer'
 import SideMenu from "./components/SideMenu"
+import { usePrayerTimes } from './hooks/usePrayerTimes';
+import { useNextPrayer } from './hooks/useNextPrayer';
+import { useNotifications } from './hooks/useNotifications';
+import { useSettings } from './context/SettingsContext';
 
 type Location = { lat: number; lon: number; tz: string; label?: string }
 
@@ -101,18 +106,26 @@ const getNextPrayerName = (times: PrayerTimes, loc: Location): string | null => 
 }
 
 export default function App() {
-  const [loc, setLoc] = useState<Location | null>(null)
-  const [date, setDate] = useState(DateTime.now().toISODate()!)
-  const [method, setMethod] = useState<keyof typeof methodMapping>('ISNA (North America)')
-  const [madhab, setMadhab] = useState<'Shafi' | 'Hanafi'>('Hanafi')
-  const [use24h, setUse24h] = useState(false)
-  const [notifOn, setNotifOn] = useState(false)
-  const [query, setQuery] = useState('')
+  const {
+    location,
+    setLocation,
+    date,
+    setDate,
+    method,
+    setMethod,
+    madhab,
+    setMadhab,
+    use24h,
+    setUse24h,
+    notifOn,
+    setNotifOn,
+    query,
+    setQuery
+  } = useSettings();
+
   const [hijri, setHijri] = useState<string>('')
-  const [nextPrayer, setNextPrayer] = useState<{ name: string; time: DateTime } | null>(null)
   const [prayerPassed, setPrayerPassed] = useState(0)
   const [showCalendar, setShowCalendar] = useState(false)
-  const notifTimers = useRef<number[]>([])
 
   // Get upcoming important dates (next 3)
   const upcomingDates = useMemo(() => {
@@ -128,82 +141,44 @@ export default function App() {
 
   // Geolocate on first load
   useEffect(() => {
-    if (!loc && navigator.geolocation) {
+    if (!location && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setLoc({ lat: pos.coords.latitude, lon: pos.coords.longitude, tz: defaultTZ })
+          setLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude, tz: defaultTZ })
         },
         () => {
-          setLoc({ lat: 43.6532, lon: -79.3832, tz: defaultTZ, label: 'Toronto (fallback)' })
+          setLocation({ lat: 43.6532, lon: -79.3832, tz: defaultTZ, label: 'Toronto (fallback)' })
         },
         { enableHighAccuracy: true, timeout: 10000 }
       )
     } else if (!navigator.geolocation) {
-      setLoc({ lat: 43.6532, lon: -79.3832, tz: defaultTZ, label: 'Toronto (fallback)' })
+      setLocation({ lat: 43.6532, lon: -79.3832, tz: defaultTZ, label: 'Toronto (fallback)' })
     }
   }, [])
 
   // Hijri from backend
   useEffect(() => {
-    if (!loc) return
-    fetch(`/api/hijri?timezone=${encodeURIComponent(loc.tz)}&date=${date}`)
+    if (!location) return
+    fetch(`/api/hijri?timezone=${encodeURIComponent(location.tz)}&date=${date}`)
       .then(r => r.json())
       .then(data => {
         if (data?.hijri?.formatted_en) setHijri(data.hijri.formatted_en)
       })
       .catch(() => setHijri(''))
-  }, [loc, date])
+  }, [location, date])
 
   const coords = useMemo(() => {
-    if (!loc) return null
-    return new Coordinates(loc.lat, loc.lon)
-  }, [loc])
+    if (!location) return null
+    return new Coordinates(location.lat, location.lon)
+  }, [location])
 
   const params = useMemo(() => makeParams(method, madhab), [method, madhab])
 
-  const times = useMemo(() => {
-    if (!coords || !loc) return null
-    const d = DateTime.fromISO(date).setZone(loc.tz || 'UTC')
-    const jsDate = new Date(d.year, d.month - 1, d.day)
-    try {
-      return new PrayerTimes(coords, jsDate, params)
-    } catch {
-      return null
-    }
-  }, [coords, date, params, loc?.tz])
-
-  useEffect(() => {
-    if (!times || !loc || !coords || !params) return;
-
-    const now = DateTime.now().setZone(loc.tz);
-    const prayerTimes: [string, Date][] = [
-      ['Fajr', times.fajr],
-      ['Sunrise', times.sunrise],
-      ['Dhuhr', times.dhuhr],
-      ['Asr', times.asr],
-      ['Maghrib', times.maghrib],
-      ['Isha', times.isha],
-    ];
-
-    let next: { name: string; time: DateTime } | null = null;
-
-    for (const [name, time] of prayerTimes) {
-      const prayerTime = DateTime.fromJSDate(time).setZone(loc.tz);
-      if (prayerTime > now) {
-        next = { name, time: prayerTime };
-        break;
-      }
-    }
-
-    if (!next) {
-      const tomorrow = now.plus({ days: 1 });
-      const tomorrowDate = new Date(tomorrow.year, tomorrow.month - 1, tomorrow.day);
-      const tomorrowTimes = new PrayerTimes(coords, tomorrowDate, params);
-      next = { name: 'Fajr', time: DateTime.fromJSDate(tomorrowTimes.fajr).setZone(loc.tz) };
-    }
-    
-    setNextPrayer(next);
-  }, [times, loc, coords, params, prayerPassed]);
+  const times = usePrayerTimes();
+  //Use Notifications hook
+  useNotifications(times);
+  // Get prayer times using the custom hook
+  const nextPrayer = useNextPrayer(times, coords);
 
   const qiblaDeg = useMemo(() => {
     if (!coords) return null
@@ -213,62 +188,6 @@ export default function App() {
       return null
     }
   }, [coords])
-
-  const scheduleNotifications = () => {
-    if (!times || !loc) return
-    notifTimers.current.forEach(t => clearTimeout(t))
-    notifTimers.current = []
-    const now = DateTime.now().setZone(loc.tz)
-    const entries: [string, Date][] = [
-      ['Fajr', times.fajr],
-      ['Sunrise', times.sunrise],
-      ['Dhuhr', times.dhuhr],
-      ['Asr', times.asr],
-      ['Maghrib', times.maghrib],
-      ['Isha', times.isha],
-    ]
-    for (const [name, t] of entries) {
-      const tt = DateTime.fromJSDate(t).setZone(loc.tz)
-      const diff = tt.diff(now).as('milliseconds')
-      if (diff > 0) {
-        const id = window.setTimeout(() => {
-          new Notification(`${name}`, { body: `${name} time: ${tt.toFormat(use24h ? 'HH:mm' : 'h:mm a')}` })
-          try {
-            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
-            const osc = ctx.createOscillator()
-            const gain = ctx.createGain()
-            osc.type = 'sine'; osc.frequency.value = 554.37
-            osc.connect(gain); gain.connect(ctx.destination)
-            gain.gain.value = 0.05; osc.start(); setTimeout(() => { osc.stop(); ctx.close() }, 1200)
-          } catch {}
-        }, diff)
-        notifTimers.current.push(id)
-      }
-    }
-  }
-
-  useEffect(() => {
-    if (!('Notification' in window)) return
-    if (notifOn) {
-      if (Notification.permission === 'granted') {
-        scheduleNotifications()
-      } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission().then(p => {
-          if (p === 'granted') scheduleNotifications()
-          else setNotifOn(false)
-        })
-      } else {
-        setNotifOn(false)
-      }
-    } else {
-      notifTimers.current.forEach(t => clearTimeout(t))
-      notifTimers.current = []
-    }
-    return () => {
-      notifTimers.current.forEach(t => clearTimeout(t))
-      notifTimers.current = []
-    }
-  }, [notifOn, times, use24h, loc?.tz])
 
   const handleSearch = async () => {
     if (!query.trim()) return
@@ -287,7 +206,7 @@ export default function App() {
         // Step 2: Get proper timezone for the location
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
         
-        setLoc({ 
+        setLocation({ 
           lat, 
           lon, 
           tz: timezone, 
@@ -300,7 +219,7 @@ export default function App() {
   }
 
     const timezoneName = new Intl.DateTimeFormat('en-US', {
-      timeZone: loc?.tz,
+      timeZone: location?.tz,
       timeZoneName: 'long',
     }).formatToParts(new Date())
       .find(part => part.type === 'timeZoneName')?.value;
@@ -333,7 +252,7 @@ export default function App() {
           <div className="md:col-span-2 p-3 sm:p-4 rounded-2xl border border-brand-gold flex flex-col">
             <h2 className="font-semibold mb-3 text-brand-gold">Prayer Times</h2>
             
-            {!times || !loc ? (
+            {!times || !location ? (
               <div>Loading...</div>
             ) : (
               <>
@@ -341,10 +260,10 @@ export default function App() {
                 <div className="mb-4 p-3 bg-brand-gold/10 rounded-lg border border-brand-gold/30">
                   <div className="text-xs text-brand-gold/80">Showing times for:</div>
                   <div className="text-sm font-semibold text-brand-gold">
-                    {loc?.label || `${loc?.lat.toFixed(4)}, ${loc?.lon.toFixed(4)}`}
+                    {location?.label || `${location?.lat.toFixed(4)}, ${location?.lon.toFixed(4)}`}
                   </div>
                   <div className="text-xs text-brand-white/70">
-                    Timezone: {loc?.tz}
+                    Timezone: {location?.tz}
                   </div>
                 </div>
                 
@@ -358,7 +277,7 @@ export default function App() {
                     ['Maghrib', times.maghrib],
                     ['Isha', times.isha],
                   ].map(([label, t]) => {
-                    const isNextPrayer = times && loc && getNextPrayerName(times, loc) === label
+                    const isNextPrayer = times && location && getNextPrayerName(times, location) === label
                     return (
                       <div key={label as string} className={`border rounded-xl px-5 flex items-center justify-between transition-colors ${
                         showCalendar ? 'py-4' : 'py-2'
@@ -372,11 +291,11 @@ export default function App() {
                             {typeof label === 'string' ? label : label.toString()}
                           </div>
                           <div className="text-xs text-brand-white/60">
-                            {DateTime.fromJSDate(t as Date).setZone(loc.tz).toRelative()}
+                            {DateTime.fromJSDate(t as Date).setZone(location.tz).toRelative()}
                           </div>
                         </div>  
                         <div className={`font-bold ${showCalendar ? 'text-2xl' : 'text-lg'} ${isNextPrayer ? 'text-brand-gold' : 'text-brand-gold'}`}>
-                          {formatTime(t as Date, loc.tz, use24h)}
+                          {formatTime(t as Date, location.tz, use24h)}
                         </div>
                       </div>
                     )
@@ -449,23 +368,7 @@ export default function App() {
         </footer>
       </div>
       
-      <SideMenu
-        use24h={use24h}
-        setUse24h={setUse24h}
-        notifOn={notifOn}
-        setNotifOn={setNotifOn}
-        method={method}
-        setMethod={setMethod}
-        madhab={madhab}
-        setMadhab={setMadhab}
-        loc={loc}
-        setLoc={setLoc}
-        query={query}
-        setQuery={setQuery}
-        handleSearch={handleSearch}
-        date={date}
-        setDate={setDate}
-      />
+      <SideMenu />
     </div>
   )
 }

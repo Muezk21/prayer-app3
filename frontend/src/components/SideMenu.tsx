@@ -1,22 +1,52 @@
 import React, { useState } from "react";
+import { useEffect } from 'react';
+import { useSettings } from '../context/SettingsContext';
 
-type SideMenuProps = {
-  use24h: boolean;
-  setUse24h: (val: boolean) => void;
-  notifOn: boolean;
-  setNotifOn: (val: boolean) => void;
-  method: string;
-  setMethod: (val: string) => void;
-  madhab: "Hanafi" | "Shafi";
-  setMadhab: (val: "Hanafi" | "Shafi") => void;
-  loc: any;
-  setLoc: (val: any) => void;
-  query: string;                    
-  setQuery: (val: string) => void;  
-  handleSearch: () => void;         
-  date: string;                     
-  setDate: (val: string) => void;
+const SideMenu: React.FC = () => {
+  const {
+    use24h,
+    setUse24h,
+    notifOn,
+    setNotifOn,
+    method,
+    setMethod,
+    madhab,
+    setMadhab,
+    location,
+    setLocation,
+    query,
+    setQuery,
+    date,
+    setDate
+  } = useSettings();
+
+  const [open, setOpen] = useState(false);
+
+  const handleSearch = async () => {
+  if (!query.trim()) return;
+
+  try {
+    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+    const data = await res.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      alert('No results found. Try a different location.');
+      return;
+    }
+
+    const first = data[0];
+    setLocation({
+      lat: parseFloat(first.lat),
+      lon: parseFloat(first.lon),
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      label: first.display_name
+    });
+  } catch (err) {
+    alert('Failed to connect to location service.');
+    console.error(err);
+  }
 };
+
 
 const METHODS = {
   'ISNA (North America)': 'ISNA (North America)',
@@ -31,24 +61,22 @@ const METHODS = {
   'Turkey': 'Turkey'
 };
 
-const SideMenu: React.FC<SideMenuProps> = ({
-  use24h,
-  setUse24h,
-  notifOn,
-  setNotifOn,
-  method,
-  setMethod,
-  madhab,
-  setMadhab,
-  loc,
-  setLoc,
-  query,
-  setQuery,
-  handleSearch,
-  date,
-  setDate,
-}) => {
-  const [open, setOpen] = useState(false);
+useEffect(() => {
+  const delay = setTimeout(() => {
+    if (query.trim()) handleSearch();
+  }, 500); // 500ms debounce
+
+  return () => clearTimeout(delay);
+}, [query]);
+
+useEffect(() => {
+  const delay = setTimeout(() => {
+    if (query.trim()) handleSearch();
+  }, 500); // 500ms debounce
+
+  return () => clearTimeout(delay);
+}, [query]);
+
 
   return (
     <>

@@ -6,6 +6,9 @@ from pathlib import Path
 from math import radians, degrees, sin, cos, atan2, tan
 from datetime import datetime, date
 from zoneinfo import ZoneInfo
+from fastapi import Request
+import httpx
+
 
 try:
     from hijri_converter import convert
@@ -105,6 +108,22 @@ def api_hijri(
             }
     except Exception as e:
         return JSONResponse(status_code=400, content={"error": str(e)})
+
+# --- API: search (Nominatim) ---
+@app.get("/api/search")
+async def api_search(q: str = Query(...)):
+    try:
+        url = f"https://nominatim.openstreetmap.org/search?format=json&q={q}"
+        headers = {
+            "User-Agent": "PrayerApp/1.0 (muezkhan96@gmail.com)"  
+        }
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=headers)
+            response.raise_for_status()
+            return response.json()
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"error": str(e)})
+
 
 # --- Serve static frontend (built with Vite) ---
 BASE_DIR = Path(__file__).resolve().parent

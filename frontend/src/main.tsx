@@ -1,10 +1,13 @@
-import React from 'react'
-import { createRoot } from 'react-dom/client'
-import App from './App'
-import './globals.css';
-import './styles.css';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import { SettingsProvider } from './context/SettingsContext';
+import './styles/globals.css';
+import './styles/styles.css';
 
 
-const container = document.getElementById('root')!
-const root = createRoot(container)
-root.render(<App />)
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <SettingsProvider>
+    <App />
+  </SettingsProvider>
+);
